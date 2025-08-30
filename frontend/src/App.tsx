@@ -1,164 +1,189 @@
-import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Box, Button, Card, CardContent, Typography, AppBar, Toolbar, Container } from "@mui/material";
+import { useState } from "react";
 
-const App: React.FC = () => {
-  const [sandwiches, setSandwiches] = useState<
-    { bread: string; main: string; sauces: string[]; vegetables: string[]; spicy: boolean }[]
-  >([]);
+type Sandwich = {
+  bread: string;
+  main: string;
+  sauces: string[];
+  vegetables: string[];
+  isSpicy: boolean;
+};
 
-  const breads = ["Brown Bread", "Milk Bread", "White Bread", "Sugar-free Bread"];
-  const mains = ["Chicken", "Beef", "Mutton"];
-  const sauces = ["Mayo", "Ketchup", "Mustard", "Hot Sauce", "Ranch", "Sriracha", "Chili Garlic Sauce"];
-  const spicyList = ["Hot Sauce", "Sriracha", "Chili Garlic Sauce"];
+function HomePage() {
+  const [sandwiches, setSandwiches] = useState<Sandwich[]>([]);
 
-  function getRandom<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
+  const getBread = () => {
+    const breads = ["Brown Bread", "Milk Bread", "White Bread", "Sugar-free Bread"];
+    return breads[Math.floor(Math.random() * breads.length)];
+  };
 
-  function getSauces(): string[] {
+  const getMain = () => {
+    const mains = ["Chicken", "Beef", "Mutton"];
+    return mains[Math.floor(Math.random() * mains.length)];
+  };
+
+  const getSauce = () => {
+    const sauces = ["Mayo", "Ketchup", "Mustard", "Hot Sauce", "Ranch", "Sriracha", "Chili Garlic Sauce"];
     const selected: string[] = [];
     while (selected.length < 2) {
-      const s = getRandom(sauces);
-      if (!selected.includes(s)) selected.push(s);
+      const randomSauce = sauces[Math.floor(Math.random() * sauces.length)];
+      if (!selected.includes(randomSauce)) selected.push(randomSauce);
     }
     return selected;
-  }
+  };
 
-  function getVegetables(main: string): string[] {
+  const getVegetables = (main: string) => {
     let vegList: string[] = [];
     if (main === "Beef") vegList = ["Lettuce", "Tomatoes"];
     if (main === "Chicken") vegList = ["Cucumbers", "Onions"];
     if (main === "Mutton") vegList = ["Basil", "Olives", "Grated Carrot"];
 
-    const selected: string[] = [];
-    const count = Math.floor(Math.random() * vegList.length) + 1;
-    while (selected.length < count) {
-      const v = getRandom(vegList);
-      if (!selected.includes(v)) selected.push(v);
+    const selectedVeggies: string[] = [];
+    while (selectedVeggies.length < vegList.length) {
+      const randomVeg = vegList[Math.floor(Math.random() * vegList.length)];
+      if (!selectedVeggies.includes(randomVeg)) selectedVeggies.push(randomVeg);
     }
-    return selected;
-  }
+    return selectedVeggies;
+  };
 
-  function createSandwich() {
-    const bread = getRandom(breads);
-    const main = getRandom(mains);
-    const sauceList = getSauces();
-    const vegetables = getVegetables(main);
-    const isSpicy = sauceList.some((s) => spicyList.includes(s));
+  const createSandwich = () => {
+    const main = getMain();
+    const newSandwich = {
+      bread: getBread(),
+      main,
+      sauces: getSauce(),
+      vegetables: getVegetables(main),
+      isSpicy: false,
+    };
+    setSandwiches([...sandwiches, newSandwich]);
+  };
 
-    setSandwiches([...sandwiches, { bread, main, sauces: sauceList, vegetables, spicy: isSpicy }]);
-  }
-
-  function removeSandwich(index: number) {
+  const removeSandwich = (index: number) => {
     setSandwiches(sandwiches.filter((_, i) => i !== index));
-  }
+  };
 
   return (
-    <div className="app">
-      <style>{`
-        body {
-      
-        .app {
-          padding: 40px;
-          background-image: url(https://static.vecteezy.com/system/resources/previews/066/300/848/non_2x/tasty-sandwiches-with-meat-on-plates-ingredients-arranged-on-background-for-menu-free-photo.jpg);
-          background-size: cover;
-          background-position: center;
-          background-attachment: fixed;
-          font-family: Segoe UI, sans-serif;
-          text-align: center;
-          min-height: 100vh;
-        }
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundImage:
+          "url(https://static.vecteezy.com/system/resources/previews/066/300/848/non_2x/tasty-sandwiches-with-meat-on-plates-ingredients-arranged-on-background-for-menu-free-photo.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        padding: 3,
+        pt: 20,
+      }}
+    >
+      <Typography variant="h3" sx={{ fontWeight: "bold", mb: 3, color: "#F8F8FF", textShadow: "1px 1px 10px rgb(4, 19, 0)" }}>
+        🥪 Random Sandwich Generator
+      </Typography>
 
-        h1 {
-          color: #074107;
-          margin-bottom: 30px;
-        }
-
-        button.create {
-          padding: 12px 24px;
-          background: linear-gradient(90deg, #6dd5ed, #2193b0);
-          color: white;
-          font-size: 18px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: transform 0.2s, background 0.3s;
-        }
-
-        button.create:hover {
-          background: linear-gradient(90deg, #2193b0, #6dd5ed);
-          transform: scale(1.1);
-        }
-
-        .sandwich-list {
-          max-width: 600px;
-          margin: 20px auto;
-        }
-
-        .sandwich {
-          background: radial-gradient(#ffffff, #eee, #8b8b8b);
-          border-radius: 12px;
-          padding: 8px;
-          margin-bottom: 25px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-          position: relative;
-          animation: fadeIn 0.5s ease;
-        }
-
-        .sandwich:hover {
-          transform: scale(1.03);
-          transition: transform 0.2s ease;
-        }
-
-        .remove-btn {
-          position: absolute;
-          top: 15px;
-          right: 15px;
-          background-color: #e74c3c;
-          color: white;
-          border: none;
-          padding: 6px 12px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          transition: background 0.3s;
-        }
-
-        .remove-btn:hover {
-          background-color: #c0392b;
-        }
-
-        ul {
-          list-style: none;
-          padding-left: 0;
-        }
-
-      `}</style>
-
-      <h1>🥪 Random Sandwich Creator</h1>
-
-      <button className="create" onClick={createSandwich}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={createSandwich}
+        sx={{
+          mb: 3,
+          fontSize: "1.2rem",
+          fontWeight: "bold",
+          borderRadius: "20px",
+          paddingX: 4,
+          paddingY: 1.5,
+          ":hover": { transform: "scale(1.05)" },
+        }}
+      >
         Create Sandwich
-      </button>
+      </Button>
 
-      <div className="sandwich-list">
-        {sandwiches.map((s, index) => (
-          <div className="sandwich" key={index}>
-            <button className="remove-btn" onClick={() => removeSandwich(index)}>
+      {sandwiches.map((sandwich, index) => (
+        <Card
+          key={index}
+          sx={{
+            mb: 2,
+            width: 500,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            borderRadius: "16px",
+            backgroundColor: "rgba(255, 255, 255, 0.57)",
+            transition: "transform 0.2s",
+            ":hover": { transform: "scale(1.02)" },
+          }}
+        >
+          <CardContent>
+            <Typography variant="body1" sx={{ borderBottom: "1px solid #ccc", pb: 1 }}>
+              Bread: {sandwich.bread}
+            </Typography>
+            <Typography variant="body1" sx={{ borderBottom: "1px solid #ccc", pb: 1 }}>
+              Main: {sandwich.main}
+            </Typography>
+            <Typography variant="body1" sx={{ borderBottom: "1px solid #ccc", pb: 1 }}>
+              Sauces: {sandwich.sauces.join(", ")}
+            </Typography>
+            <Typography variant="body1">
+              Vegetables: {sandwich.vegetables.join(", ")}
+            </Typography>
+
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => removeSandwich(index)}
+              sx={{
+                mt: 1,
+                width: "100%",
+                borderRadius: "8px",
+                ":hover": { backgroundColor: "#ffe5e5" },
+              }}
+            >
               Remove
-            </button>
-            <h3>🥪 Your Sandwich</h3>
-            <ul>
-              <li><b>Bread:</b> {s.bread}</li>
-              <li><b>Main:</b> {s.main}</li>
-              <li><b>Sauces:</b> {s.sauces.join(", ")}</li>
-              <li><b>Vegetables:</b> {s.vegetables.join(", ")}</li>
-              <li><b>Spicy:</b> {s.spicy ? "Yes 🌶️" : "No"}</li>
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </Box>
   );
-};
+}
 
-export default App;
+function AboutPage() {
+  return (
+    <Container sx={{ mt: 45, mb: 42.4, textAlign: "center" }}>
+      <Typography variant="h3" sx={{ fontWeight: "bold", mb: 5 }}>
+        About This Project
+      </Typography>
+      <Typography variant="h6">
+        This project is a fun random sandwich generator built with React, React Router, and MUI.
+        You can create custom sandwiches with random bread, fillings, sauces, and veggies.
+        Explore it, generate delicious combinations, and get hungry! 🥪
+      </Typography>
+    </Container>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AppBar position="fixed" sx={{ backgroundColor: "#009400" }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Typography variant="h6">🥪 Sandwich Generator</Typography>
+          <Box>
+            <Button color="inherit" component={Link} to="/">Home</Button>
+            <Button color="inherit" component={Link} to="/about">About</Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+      </Routes>
+
+      <Box sx={{ backgroundColor: "gray", color: "black", py: 2, textAlign: "center", mt: "auto" }}>
+        <Typography variant="body2">© 2025 Sandwich Generator</Typography>
+      </Box>
+    </Router>
+  );
+}
